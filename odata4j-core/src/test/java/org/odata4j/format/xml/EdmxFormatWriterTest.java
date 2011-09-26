@@ -90,7 +90,7 @@ public class EdmxFormatWriterTest implements IEdmDecorator {
     String metadata = webResource.get(
             String.class);
     
-    System.out.println(metadata);
+    //System.out.println(metadata);
     
     String expected = NorthwindTestUtils.readFileToString("/META-INF/uri-conventions/xml/DocAnnotTest.xml");
 

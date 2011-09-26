@@ -1,7 +1,6 @@
-<project
-    xmlns="http://maven.apache.org/POM/4.0.0"
-    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.odata4j</groupId>
   <artifactId>odata4j</artifactId>
@@ -11,6 +10,7 @@
   <name>odata4j</name>
   <description>odata4j</description>
   <url>http://odata4j.org</url>
+  <inceptionYear>2010</inceptionYear>
 
   <licenses>
     <license>
@@ -19,11 +19,16 @@
       <distribution>repo</distribution>
     </license>
   </licenses>
-    
+
+  <issueManagement>
+    <system>code.google.com</system>
+    <url>http://code.google.com/p/odata4j/issues/list</url>
+  </issueManagement>
+
   <scm>
-    <connection>scm:svn:http://odata4j.googlecode.com/svn/trunk/</connection>
-    <developerConnection>scm:svn:https://odata4j.googlecode.com/svn/trunk/</developerConnection>
-    <url>http://odata4j.googlecode.com/svn/trunk/</url>
+    <connection>scm:hg:https://odata4j.googlecode.com/hg/</connection>
+    <developerConnection>scm:hg:https://odata4j.googlecode.com/hg/</developerConnection>
+    <url>http://code.google.com/p/odata4j/source/browse/</url>
   </scm>
 
   <developers>
@@ -48,14 +53,25 @@
       <email>phanirajuyn@gmail.com</email>
     </developer>
     <developer>
+      <id>philipp.thun</id>
+      <name>Philipp Thun</name>
+      <email>philipp.thun@sap.com</email>
+    </developer>
+    <developer>
       <id>sergei.inbox</id>
       <name>Sergej.T</name>
       <email>sergei.inbox@gmail.com</email>
+    </developer>
+    <developer>
+      <id>stephan.klevenz</id>
+      <name>Stephan Klevenz</name>
+      <email>stephan.klevenz@sap.com</email>
     </developer>
   </developers>
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <built.by>${project.name}</built.by>
     <odata4j.skip.javadoc>false</odata4j.skip.javadoc>
     <odata4j.sign.artifacts.phase>verify</odata4j.sign.artifacts.phase>
   </properties>
@@ -65,7 +81,7 @@
       <resource>
         <directory>src/main/resources</directory>
         <excludes>
-          <exclude>**/_svn/</exclude>
+          <exclude>.hgempty</exclude>
         </excludes>
       </resource>
     </resources>
@@ -97,12 +113,9 @@
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-assembly-plugin</artifactId>
         <version>2.2.1</version>
-        <configuration>
-          <appendAssemblyId>false</appendAssemblyId>
-        </configuration>
         <executions>
-           
-          <!-- clientbundle: minimum to run on a constrained client (android) -->                    
+
+          <!-- clientbundle: minimum to run on a constrained client (android) -->
           <execution>
             <id>clientbundle</id>
             <phase>package</phase>
@@ -117,8 +130,8 @@
               </descriptors>
             </configuration>
           </execution>
-                    
-          <!-- nojpabundle: minimum to run on a constrained server (appengine) -->                    
+
+          <!-- nojpabundle: minimum to run on a constrained server (appengine) -->
           <execution>
             <id>nojpabundle</id>
             <phase>package</phase>
@@ -126,15 +139,15 @@
               <goal>single</goal>
             </goals>
             <configuration>
-              <skipAssembly>true</skipAssembly>
+              <skipAssembly>false</skipAssembly>
               <finalName>${project.name}-nojpabundle-${project.version}</finalName>
               <descriptors>
                 <descriptor>src/main/assembly/nojpabundle.xml</descriptor>
               </descriptors>
             </configuration>
-          </execution>                  
+          </execution>
 
-          <!-- bundle: everything (including jpa)  -->
+          <!-- bundle: everything (including jpa) -->
           <execution>
             <id>bundle</id>
             <phase>package</phase>
@@ -142,25 +155,20 @@
               <goal>single</goal>
             </goals>
             <configuration>
-              <skipAssembly>true</skipAssembly>
+              <skipAssembly>false</skipAssembly>
               <finalName>${project.name}-bundle-${project.version}</finalName>
-              <descriptorRefs>
-                <descriptorRef>jar-with-dependencies</descriptorRef>
-              </descriptorRefs>
+              <descriptors>
+                <descriptor>src/main/assembly/bundle.xml</descriptor>
+              </descriptors>
             </configuration>
           </execution>
-          
+
         </executions>
       </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-source-plugin</artifactId>
         <version>2.1.2</version>
-        <configuration>
-          <excludes>
-            <exclude>**/_svn/</exclude>
-          </excludes>
-        </configuration>
         <executions>
           <execution>
             <id>bundle-sources</id>
@@ -168,6 +176,13 @@
             <goals>
               <goal>jar</goal>
             </goals>
+            <configuration>
+              <archive>
+                <manifestEntries>
+                  <Built-By>${built.by}</Built-By>
+                </manifestEntries>
+              </archive>
+            </configuration>
           </execution>
         </executions>
       </plugin>
@@ -190,12 +205,29 @@
                 <link>http://joda-time.sourceforge.net/api-release</link>
                 <link>http://download.oracle.com/javase/6/docs/api</link>
                 <link>http://download.oracle.com/javaee/6/api</link>
-                <link>http://core4j.googlecode.com/svn/tags/0.4/core4j/doc/apidocs</link>
+                <link>http://core4j.googlecode.com/hg/core4j/doc/apidocs</link>
                 <link>http://www.xmlpull.org/v1/doc/api</link>
               </links>
+              <archive>
+                <manifestEntries>
+                  <Built-By>${built.by}</Built-By>
+                </manifestEntries>
+              </archive>
             </configuration>
           </execution>
         </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-jar-plugin</artifactId>
+        <version>2.3.2</version>
+        <configuration>
+          <archive>
+            <manifestEntries>
+              <Built-By>${built.by}</Built-By>
+            </manifestEntries>
+          </archive>
+        </configuration>
       </plugin>
     </plugins>
   </build>
@@ -218,12 +250,12 @@
     <repository>
       <id>org.core4j</id>
       <name>org.core4j</name>
-      <url>https://core4j.googlecode.com/svn/maven/2</url>
+      <url>http://mavenrepo.core4j.googlecode.com/hg/</url>
     </repository>
     <repository>
       <id>jboss</id>
       <name>jboss</name>
-      <url>http://repository.jboss.org/nexus/content/groups/public/</url>        
+      <url>http://repository.jboss.org/nexus/content/groups/public/</url>
     </repository>
   </repositories>
 
@@ -231,7 +263,7 @@
     <dependency>
       <groupId>org.core4j</groupId>
       <artifactId>core4j</artifactId>
-      <version>0.4</version>
+      <version>0.5-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.eclipse.persistence</groupId>
@@ -283,7 +315,7 @@
       <scope>test</scope>
     </dependency>
 
-    <!--  for hibernate testing -->
+    <!-- for hibernate testing -->
     <dependency>
       <groupId>org.hibernate</groupId>
       <artifactId>hibernate-entitymanager</artifactId>
