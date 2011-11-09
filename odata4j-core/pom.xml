@@ -129,6 +129,7 @@
               <goal>single</goal>
             </goals>
             <configuration>
+              <appendAssemblyId>false</appendAssemblyId>
               <skipAssembly>false</skipAssembly>
               <finalName>${project.name}-clientbundle-${project.version}</finalName>
               <descriptors>
@@ -145,6 +146,7 @@
               <goal>single</goal>
             </goals>
             <configuration>
+              <appendAssemblyId>false</appendAssemblyId>
               <skipAssembly>false</skipAssembly>
               <finalName>${project.name}-nojpabundle-${project.version}</finalName>
               <descriptors>
@@ -161,6 +163,7 @@
               <goal>single</goal>
             </goals>
             <configuration>
+              <appendAssemblyId>false</appendAssemblyId>
               <skipAssembly>false</skipAssembly>
               <finalName>${project.name}-bundle-${project.version}</finalName>
               <descriptors>
@@ -269,7 +272,7 @@
     <repository>
       <id>eclipselink</id>
       <name>eclipselink</name>
-<!--       <url>http://www.gtlib.gatech.edu/pub/eclipse/rt/eclipselink/maven.repo/</url> -->
+      <!-- <url>http://www.gtlib.gatech.edu/pub/eclipse/rt/eclipselink/maven.repo/</url> -->
       <url>http://eclipse.ialto.org/rt/eclipselink/maven.repo/</url>
       <snapshots>
         <enabled>true</enabled>   <!-- for javax.persistence -->
@@ -299,9 +302,9 @@
       <version>2.1.2</version>
     </dependency>
     <dependency>
-      <groupId>javax.persistence</groupId>
+      <groupId>org.eclipse.persistence</groupId>
       <artifactId>javax.persistence</artifactId>
-      <version>2.0-SNAPSHOT</version>
+      <version>2.0.0</version>
     </dependency>
     <dependency>
       <groupId>com.sun.jersey</groupId>

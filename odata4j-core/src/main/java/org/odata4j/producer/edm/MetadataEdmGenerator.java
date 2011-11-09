@@ -58,27 +58,10 @@ public class MetadataEdmGenerator implements EdmGenerator {
   private List<EdmAssociationSet.Builder> asets = new LinkedList<EdmAssociationSet.Builder>();
 
   /**
-   * construct
-   * @param decorator - optional
-   */
-  public MetadataEdmGenerator(EdmDecorator decorator) {
-    this.decorator = decorator;
-  }
-
-  /**
-   * Get the generators decorator
-   * @return the decorator
-   */
-  @Override
-  public EdmDecorator getDecorator() {
-    return decorator;
-  }
-
-  /**
    * Generate the meta EDM data serivces
    * @return - the model.
    */
-  public EdmDataServices generateEdm() {
+  public EdmDataServices.Builder generateEdm(EdmDecorator decorator) {
 
     createComplexTypes();
     createEntityTypes();
@@ -98,7 +81,7 @@ public class MetadataEdmGenerator implements EdmGenerator {
         .addEntityContainers(container);
 
 
-    return EdmDataServices.newBuilder().addSchemas(schema).build();
+    return EdmDataServices.newBuilder().addSchemas(schema);
   }
 
   private void createComplexTypes() {
