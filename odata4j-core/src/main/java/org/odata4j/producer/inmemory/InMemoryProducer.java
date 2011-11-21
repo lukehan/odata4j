@@ -14,6 +14,7 @@ import org.odata4j.core.OEntities;
 import org.odata4j.core.OEntity;
 import org.odata4j.core.OEntityId;
 import org.odata4j.core.OEntityKey;
+import org.odata4j.core.OFuncs;
 import org.odata4j.core.OFunctionParameter;
 import org.odata4j.core.OLink;
 import org.odata4j.core.OLinks;
@@ -29,6 +30,7 @@ import org.odata4j.edm.EdmNavigationProperty;
 import org.odata4j.edm.EdmSimpleType;
 import org.odata4j.expression.BoolCommonExpression;
 import org.odata4j.expression.EntitySimpleProperty;
+import org.odata4j.expression.Expression;
 import org.odata4j.expression.OrderByExpression;
 import org.odata4j.expression.OrderByExpression.Direction;
 import org.odata4j.producer.BaseResponse;
@@ -61,23 +63,33 @@ public class InMemoryProducer implements ODataProducer {
 
   private static final int DEFAULT_MAX_RESULTS = 100;
 
-  /** Create a new instance of an in-memory POJO/JPA producer
+  /**
+   * Creates a new instance of an in-memory POJO producer.
    *
-   * @param namespace - the namespace that the schema registrations will be in
+   * @param namespace  the namespace of the schema registrations
    */
   public InMemoryProducer(String namespace) {
     this(namespace, DEFAULT_MAX_RESULTS);
   }
 
-  /** Create a new instance of an in-memory POJO/JPA producer
+  /**
+   * Creates a new instance of an in-memory POJO producer.
    *
-   * @param namespace - the names apce that the schema registrations will be in
-   * @param maxResults - the maximum number of entities to return
+   * @param namespace  the namespace of the schema registrations
+   * @param maxResults  the maximum number of entities to return in a single call
    */
   public InMemoryProducer(String namespace, int maxResults) {
     this(namespace, maxResults, null, null);
   }
 
+  /**
+   * Creates a new instance of an in-memory POJO producer.
+   *
+   * @param namespace  the namespace of the schema registrations
+   * @param maxResults  the maximum number of entities to return in a single call
+   * @param decorator  a decorator to use for edm customizations
+   * @param typeMapping  optional mapping between java types and edm types, null for default
+   */
   public InMemoryProducer(String namespace, int maxResults, EdmDecorator decorator, InMemoryTypeMapping typeMapping) {
     this.namespace = namespace;
     this.maxResults = maxResults;
@@ -108,20 +120,13 @@ public class InMemoryProducer implements ODataProducer {
 
   }
 
-  private static <T1, T2> Func1<Object, T2> widen(final Func1<T1, T2> fn) {
-    return new Func1<Object, T2>() {
-
-      @SuppressWarnings("unchecked")
-      @Override
-      public T2 apply(Object input) {
-        return fn.apply((T1) input);
-      }
-    };
-  }
-
+  /**
+   * Registers a new entity set based on a POJO type using the default property model and a given ID property.
+   *
+   * <p>@see {@link #register(Class, PropertyModel, Class, String, Func, Func1)} for parameter docs.
+   */
   public <TEntity, TKey> void register(final Class<TEntity> entityClass, Class<TKey> keyClass, final String entitySetName, Func<Iterable<TEntity>> get, final String idPropertyName) {
     register(entityClass, keyClass, entitySetName, get, new Func1<TEntity, TKey>() {
-
       @SuppressWarnings("unchecked")
       @Override
       public TKey apply(TEntity input) {
@@ -130,13 +135,10 @@ public class InMemoryProducer implements ODataProducer {
     });
   }
 
-  /** Register a new ODATA endpoint for an entity set.
+  /**
+   * Registers a new entity set based on a POJO type using the default property model.
    *
-   * @param entityClass the class of the entities that are to be stored in the set
-   * @param keyClass the class of the key element of the set
-   * @param entitySetName the alias the set will be known by; this is what is used in the ODATA URL
-   * @param get a function to iterate over the elements in the set
-   * @param id a function to extract the id from any given element in the set
+   * <p>@see {@link #register(Class, PropertyModel, Class, String, Func, Func1)} for parameter docs.
    */
   public <TEntity, TKey> void register(Class<TEntity> entityClass, Class<TKey> keyClass, String entitySetName, Func<Iterable<TEntity>> get, Func1<TEntity, TKey> id) {
     PropertyModel model = new BeanBasedPropertyModel(entityClass);
@@ -145,6 +147,16 @@ public class InMemoryProducer implements ODataProducer {
     register(entityClass, model, keyClass, entitySetName, get, id);
   }
 
+  /**
+   * Registers a new entity set based on a POJO type and a property model.
+   *
+   * @param entityClass  the class of the entities that are to be stored in the set
+   * @param propertyModel a way to get/set properties on the POJO
+   * @param keyClass  the class of the key element of the set
+   * @param entitySetName  the alias the set will be known by; this is what is used in the ODATA URL
+   * @param get  a function to iterate over the elements in the set
+   * @param id  a function to extract the id from any given element in the set
+   */
   public <TEntity, TKey> void register(
       Class<TEntity> entityClass,
       PropertyModel propertyModel,
@@ -157,7 +169,7 @@ public class InMemoryProducer implements ODataProducer {
     ei.entitySetName = entitySetName;
     ei.properties = propertyModel;
     ei.get = get;
-    ei.id = widen(id);
+    ei.id = OFuncs.widen(id);
     ei.keyClass = keyClass;
     ei.entityClass = entityClass;
 
@@ -185,30 +197,29 @@ public class InMemoryProducer implements ODataProducer {
     if (expand != null && !expand.isEmpty()) {
       EdmEntityType edmEntityType = ees.getType();
 
-      HashMap<String, List<EntitySimpleProperty>> expandedProps=new HashMap<String, List<EntitySimpleProperty>>();
+      HashMap<String, List<EntitySimpleProperty>> expandedProps = new HashMap<String, List<EntitySimpleProperty>>();
 
       //process all the expanded properties and add them to map
-      for(final EntitySimpleProperty propPath:expand) {
-    	  String[] props = propPath.getPropertyName().split("/", 2);
-          String prop = props[0];
-          String remainingPropPath = props.length > 1 ? props[1] : null;
-          //if link is already set to be expanded, add other remaining prop path to the list
-          if(expandedProps.containsKey(prop)) {
-        	  if(remainingPropPath!=null) {
-        		List<EntitySimpleProperty> remainingPropPaths=expandedProps.get(prop);
-        	  	remainingPropPaths.add(org.odata4j.expression.Expression.simpleProperty(remainingPropPath));
-        	  }
+      for (final EntitySimpleProperty propPath : expand) {
+        String[] props = propPath.getPropertyName().split("/", 2);
+        String prop = props[0];
+        String remainingPropPath = props.length > 1 ? props[1] : null;
+        //if link is already set to be expanded, add other remaining prop path to the list
+        if (expandedProps.containsKey(prop)) {
+          if (remainingPropPath != null) {
+            List<EntitySimpleProperty> remainingPropPaths = expandedProps.get(prop);
+            remainingPropPaths.add(Expression.simpleProperty(remainingPropPath));
           }
-          else {
-        	  List<EntitySimpleProperty> remainingPropPaths=new ArrayList<EntitySimpleProperty>();
-        	  if(remainingPropPath!=null)
-        		  remainingPropPaths.add(org.odata4j.expression.Expression.simpleProperty(remainingPropPath));
-        	  expandedProps.put(prop, remainingPropPaths);
-          }
+        } else {
+          List<EntitySimpleProperty> remainingPropPaths = new ArrayList<EntitySimpleProperty>();
+          if (remainingPropPath != null)
+              remainingPropPaths.add(Expression.simpleProperty(remainingPropPath));
+          expandedProps.put(prop, remainingPropPaths);
+        }
       }
 
       for (final String prop : expandedProps.keySet()) {
-    	List<EntitySimpleProperty> remainingPropPath=expandedProps.get(prop);
+        List<EntitySimpleProperty> remainingPropPath = expandedProps.get(prop);
 
         EdmNavigationProperty edmNavProperty = edmEntityType.findNavigationProperty(prop);
 
@@ -267,7 +278,7 @@ public class InMemoryProducer implements ODataProducer {
         @Override
         public boolean apply(OLink t) {
           return t.getTitle().equals(ep.getName());
-          }
+        }
       });
 
       if (!expanded) {
@@ -299,23 +310,31 @@ public class InMemoryProducer implements ODataProducer {
     Enumerable<Object> objects = Enumerable.create(ei.get.apply()).cast(Object.class);
 
     // apply filter
-    if (queryInfo.filter != null) objects = objects.where(filterToPredicate(queryInfo.filter, ei.properties));
+    if (queryInfo != null && queryInfo.filter != null) {
+      objects = objects.where(filterToPredicate(queryInfo.filter, ei.properties));
+    }
 
-    // compute inlineCount
-    Integer inlineCount = queryInfo.inlineCount == InlineCount.ALLPAGES ? objects.count() : null;
+    // compute inlineCount, must be done after applying filter
+    Integer inlineCount = null;
+    if (queryInfo != null && queryInfo.inlineCount == InlineCount.ALLPAGES) {
+      objects = Enumerable.create(objects.toList()); // materialize up front, since we're about to count
+      inlineCount = objects.count();
+    }
 
     // apply ordering
-    if (queryInfo.orderBy != null) objects = orderBy(objects, queryInfo.orderBy, ei.properties);
+    if (queryInfo != null && queryInfo.orderBy != null) {
+      objects = orderBy(objects, queryInfo.orderBy, ei.properties);
+    }
 
     // work with oentities
     Enumerable<OEntity> entities = objects.select(new Func1<Object, OEntity>() {
       public OEntity apply(Object input) {
-        return toOEntity(ees, input, queryInfo.expand);
+        return toOEntity(ees, input, queryInfo != null ? queryInfo.expand : null);
       }
     });
 
     // skip records by $skipToken
-    if (queryInfo.skipToken != null) {
+    if (queryInfo != null && queryInfo.skipToken != null) {
       final Boolean[] skipping = new Boolean[] { true };
       entities = entities.skipWhile(new Predicate1<OEntity>() {
         public boolean apply(OEntity input) {
@@ -330,11 +349,15 @@ public class InMemoryProducer implements ODataProducer {
     }
 
     // skip records by $skip amount
-    if (queryInfo.skip != null) entities = entities.skip(queryInfo.skip);
+    if (queryInfo != null && queryInfo.skip != null) {
+      entities = entities.skip(queryInfo.skip);
+    }
 
     // apply limit
     int limit = this.maxResults;
-    if (queryInfo.top != null && queryInfo.top < limit) limit = queryInfo.top;
+    if (queryInfo != null && queryInfo.top != null && queryInfo.top < limit) {
+      limit = queryInfo.top;
+    }
     entities = entities.take(limit + 1);
 
     // materialize OEntities
@@ -413,7 +436,7 @@ public class InMemoryProducer implements ODataProducer {
   }
 
   @Override
-  public EntitiesResponse getNavProperty(String entitySetName, OEntityKey entityKey, String navProp, QueryInfo queryInfo) {
+  public BaseResponse getNavProperty(String entitySetName, OEntityKey entityKey, String navProp, QueryInfo queryInfo) {
     throw new NotImplementedException();
   }
 

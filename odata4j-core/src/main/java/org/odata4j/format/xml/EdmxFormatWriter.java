@@ -2,8 +2,8 @@ package org.odata4j.format.xml;
 
 import java.io.Writer;
 
-import org.odata4j.core.Annotation;
-import org.odata4j.core.Namespace;
+import org.odata4j.core.NamespacedAnnotation;
+import org.odata4j.core.PrefixedNamespace;
 import org.odata4j.edm.EdmAnnotationAttribute;
 import org.odata4j.edm.EdmAnnotationElement;
 import org.odata4j.edm.EdmAssociation;
@@ -163,8 +163,10 @@ public class EdmxFormatWriter extends XmlFormatWriter {
           if (null != fi.getEntitySet()) {
             writer.writeAttribute("EntitySet", fi.getEntitySet().getName());
           }
-          // TODO: how to differentiate inline ReturnType vs embedded ReturnType?
-          writer.writeAttribute("ReturnType", fi.getReturnType().getFullyQualifiedTypeName());
+          if (fi.getReturnType() != null) {
+            // TODO: how to differentiate inline ReturnType vs embedded ReturnType?
+            writer.writeAttribute("ReturnType", fi.getReturnType().getFullyQualifiedTypeName());
+          }
           writer.writeAttribute(new QName2(m, "HttpMethod", "m"), fi.getHttpMethod());
           writeAnnotationAttributes(fi, writer);
           writeDocumentation(fi, writer);
@@ -225,7 +227,7 @@ public class EdmxFormatWriter extends XmlFormatWriter {
    */
   private static void writeExtensionNamespaces(EdmDataServices services, XMLWriter2 writer) {
     if (null != services.getNamespaces()) {
-      for (Namespace ns : services.getNamespaces()) {
+      for (PrefixedNamespace ns : services.getNamespaces()) {
         writer.writeNamespace(ns.getPrefix(), ns.getUri());
       }
     }
@@ -261,10 +263,10 @@ public class EdmxFormatWriter extends XmlFormatWriter {
 
   private static void writeAnnotationAttributes(EdmItem item, XMLWriter2 writer) {
     if (null != item.getAnnotations()) {
-      for (Annotation<?> a : item.getAnnotations()) {
+      for (NamespacedAnnotation<?> a : item.getAnnotations()) {
         if (a instanceof EdmAnnotationAttribute) {
           writer.writeAttribute(
-                  new QName2(a.getNamespaceUri(), a.getLocalName(), a.getNamespacePrefix()),
+                  new QName2(a.getNamespace().getUri(), a.getName(), a.getNamespace().getPrefix()),
                   null == a.getValue() ? "" : a.getValue().toString());
         }
       }
@@ -273,7 +275,7 @@ public class EdmxFormatWriter extends XmlFormatWriter {
 
   private static void writeAnnotationElements(EdmItem item, XMLWriter2 writer) {
     if (null != item.getAnnotations()) {
-      for (Annotation<?> a : item.getAnnotations()) {
+      for (NamespacedAnnotation<?> a : item.getAnnotations()) {
         if (a instanceof EdmAnnotationElement) {
           // TODO: please don't throw an exception here.
           // this totally breaks ODataConsumer even thought it doesn't rely
