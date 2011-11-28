@@ -11,13 +11,14 @@ import org.odata4j.edm.EdmDataServices;
 import org.odata4j.edm.EdmFunctionImport;
 import org.odata4j.producer.edm.MetadataProducer;
 
+/** Abstract base {@link Delegate} for {@link ODataProducer}. */
 public abstract class ODataProducerDelegate implements Delegate<ODataProducer>, ODataProducer {
 
   @Override
   public EdmDataServices getMetadata() {
     return getDelegate().getMetadata();
   }
-  
+
   @Override
   public MetadataProducer getMetadataProducer() {
     return getDelegate().getMetadataProducer();
@@ -92,4 +93,5 @@ public abstract class ODataProducerDelegate implements Delegate<ODataProducer>, 
   public BaseResponse callFunction(EdmFunctionImport name, Map<String, OFunctionParameter> params, QueryInfo queryInfo) {
     return getDelegate().callFunction(name, params, queryInfo);
   }
+
 }

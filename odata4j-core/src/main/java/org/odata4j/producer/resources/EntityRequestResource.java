@@ -77,7 +77,6 @@ public class EntityRequestResource extends BaseResource {
     }
 
     throw new RuntimeException("Expected a tunnelled PUT, MERGE or DELETE");
-
   }
 
   @DELETE
@@ -124,7 +123,6 @@ public class EntityRequestResource extends BaseResource {
     String entity = sw.toString();
 
     return Response.ok(entity, fw.getContentType()).header(ODataConstants.Headers.DATA_SERVICE_VERSION, ODataConstants.DATA_SERVICE_VERSION_HEADER).build();
-
   }
 
   @Path("{first: \\$}links/{targetNavProp:.+?}{targetId: (\\(.+?\\))?}")

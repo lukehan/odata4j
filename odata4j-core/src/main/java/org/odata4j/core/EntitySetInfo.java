@@ -1,9 +1,9 @@
 package org.odata4j.core;
 
-public interface EntitySetInfo {
+
+/** Entity-set title and href. */
+public interface EntitySetInfo extends Titled {
 
   String getHref();
-
-  String getTitle();
 
 }

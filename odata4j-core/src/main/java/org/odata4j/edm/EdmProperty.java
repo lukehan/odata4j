@@ -3,14 +3,24 @@ package org.odata4j.edm;
 import org.odata4j.core.ImmutableList;
 import org.odata4j.core.Named;
 
-
+/**
+ * A CSDL Property element.
+ *
+ * <p>Property elements define the shape and characteristics of data that an entity type instance or complex type
+ * instance will contain. Properties in a conceptual model are analogous to properties that are defined on a class.
+ * In the same way that properties on a class define the shape of the class and carry information about objects,
+ * properties in a conceptual model define the shape of an entity type and carry information about entity type instances.
+ *
+ * @see <a href="http://msdn.microsoft.com/en-us/library/bb399546.aspx">[msdn] Property Element (CSDL)</a>
+ */
 public class EdmProperty extends EdmPropertyBase {
 
+  /** Kind of collection: List, Bag, or Collection */
   public enum CollectionKind {
     NONE,
     // note that the toString() of these enum values is used in $metadata generation
     // so case matters.
-    
+
     // CSDL is inconsistent:
     List,       // used in Property
     Bag,        // used in Property
@@ -138,6 +148,7 @@ public class EdmProperty extends EdmPropertyBase {
     return context.newBuilder(property, new Builder(property.getName()));
   }
 
+  /** Mutable builder for {@link EdmProperty} objects. */
   public static class Builder extends EdmPropertyBase.Builder<EdmProperty, Builder> implements Named {
 
     private EdmStructuralType declaringType;

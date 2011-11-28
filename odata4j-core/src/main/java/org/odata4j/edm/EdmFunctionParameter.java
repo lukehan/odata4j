@@ -2,8 +2,16 @@ package org.odata4j.edm;
 
 import org.odata4j.core.ImmutableList;
 
+/**
+ * A CSDL Parameter element.
+ *
+ * <p>A Parameter element is used to define input and output parameters for function imports that are declared in CSDL.
+ *
+ * @see <a href="http://msdn.microsoft.com/en-us/library/ee473431.aspx">[msdn] Parameter Element (CSDL)</a>
+ */
 public class EdmFunctionParameter extends EdmItem {
 
+  /** Parameter type: In, Out, or InOut */
   public enum Mode {
     In, Out, InOut;
   };
@@ -39,8 +47,9 @@ public class EdmFunctionParameter extends EdmItem {
     return context.newBuilder(functionParameter, new Builder());
   }
 
+  /** Mutable builder for {@link EdmFunctionParameter} objects. */
   public static class Builder extends EdmItem.Builder<EdmFunctionParameter, Builder> {
-    
+
     private String name;
     private EdmType type;
     private EdmType.Builder<?, ?> typeBuilder;
@@ -50,9 +59,9 @@ public class EdmFunctionParameter extends EdmItem {
     Builder newBuilder(EdmFunctionParameter functionParameter, BuilderContext context) {
       return new Builder().setName(functionParameter.name).setType(functionParameter.type).setMode(functionParameter.mode);
     }
-    
+
     public EdmFunctionParameter build() {
-      return new EdmFunctionParameter(name, null != typeBuilder ? typeBuilder.build() : type, 
+      return new EdmFunctionParameter(name, null != typeBuilder ? typeBuilder.build() : type,
           mode, getDocumentation(), ImmutableList.copyOf(getAnnotations()));
     }
 
@@ -65,7 +74,7 @@ public class EdmFunctionParameter extends EdmItem {
       this.type = type;
       return this;
     }
-    
+
     public Builder setType(EdmType.Builder<?, ?> typeBuilder) {
       this.typeBuilder = typeBuilder;
       return this;
@@ -82,7 +91,7 @@ public class EdmFunctionParameter extends EdmItem {
       this.type = type;
       return this;
     }
-    
+
   }
 
 }
